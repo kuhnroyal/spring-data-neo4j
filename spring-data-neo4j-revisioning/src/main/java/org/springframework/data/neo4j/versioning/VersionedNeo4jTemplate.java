@@ -18,8 +18,6 @@ package org.springframework.data.neo4j.versioning;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
@@ -33,8 +31,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 public class VersionedNeo4jTemplate extends Neo4jTemplate {
-
-    private ApplicationContext ctx;
 
     public VersionedNeo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         super(graphDatabase, transactionManager);
@@ -91,7 +87,7 @@ public class VersionedNeo4jTemplate extends Neo4jTemplate {
         return count(entityClass, RevisionManager.LATEST);
     }
 
-    public <T> long count(Class<T> entityClass, final Long  revision) {
+    public <T> long count(Class<T> entityClass, final Long revision) {
         notNull(entityClass, "entity type");
         return ((RevisionTypeRepresentationStrategies) getInfrastructure().getTypeRepresentationStrategies()).count(getEntityType(entityClass), revision);
     }
@@ -170,11 +166,5 @@ public class VersionedNeo4jTemplate extends Neo4jTemplate {
 
     public VersionedTraversalDescription traversalDescription(final TraversalDescription delegate, final long revision) {
         return new VersionedTraversalDescriptionImpl(delegate, revision);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-        this.ctx = ctx;
-        super.setApplicationContext(ctx);
     }
 }
