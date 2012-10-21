@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.history;
 
 import org.joda.time.DateTime;
 import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
@@ -34,6 +35,7 @@ public class Rev {
 
     @Indexed
     @NotNull
+    @GraphProperty(propertyType = Long.class)
     private DateTime date;
 
     public Long getId() {
