@@ -26,7 +26,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 public class RevisionManager {
 
-    public static final String PROPERTY_DELETED = "__DEL__";
+    public static final String PROPERTY_DELETED = "__DELETED_ENTITY__";
+
+    public static final String PROPERTY_REVISIONED = "__REVISION_ENTITY__";
 
     public static final String PROPERTY_VALID_FROM = "__VALID_FROM__";
 
@@ -89,7 +91,7 @@ public class RevisionManager {
                 template.save(rev);
 
                 final Node newRev = template.getNode(rev.getId());
-                final Node oldRev = template.getNode(current.getId());
+                final Node oldRev = template.getNode(getCurrentRevision().getId());
                 oldRev.getSingleRelationship(REVISIONS_REL_TYPE, Direction.INCOMING).delete();
                 newRev.createRelationshipTo(oldRev, PREV_REV_REL_TYPE);
                 template.getReferenceNode().createRelationshipTo(newRev, REVISIONS_REL_TYPE);
@@ -106,7 +108,7 @@ public class RevisionManager {
         return rev;
     }
 
-    public long getCurrentRevisionNumber() {
+    public synchronized long getCurrentRevisionNumber() {
         return getCurrentRevision().getNumber();
     }
 
@@ -125,7 +127,7 @@ public class RevisionManager {
     }
 
     public static boolean isVersioned(PropertyContainer container) {
-        return container.hasProperty(PROPERTY_VALID_FROM);
+        return container.hasProperty(PROPERTY_REVISIONED);
     }
 
     public static boolean isDeleted(PropertyContainer container) {
@@ -138,8 +140,8 @@ public class RevisionManager {
         }
     }
 
-    public static void setVersioned(PropertyContainer container) {
-        container.setProperty(PROPERTY_VALID_FROM, "");
+    public static void setRevisioned(PropertyContainer container) {
+        container.setProperty(PROPERTY_REVISIONED, "");
     }
 
     public static boolean hasValidRevision(PropertyContainer propertyContainer) {

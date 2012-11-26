@@ -58,7 +58,7 @@ public class VersioningNeo4jEntityPersister extends Neo4jEntityPersister {
 
     private void setVersionedProperty(PropertyContainer container, Class<?> type) {
         if (container != null && type.isAnnotationPresent(Revisioned.class) && !RevisionManager.isVersioned(container)) {
-            RevisionManager.setVersioned(container);
+            RevisionManager.setRevisioned(container);
         }
     }
 }
