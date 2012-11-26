@@ -89,6 +89,14 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
 
 
     /**
+     * deletes the entity identified by the given id by calling its entity.remove() method
+     * @param id of the entity to delete
+     */
+    @Transactional
+    void delete(Long id);
+
+
+    /**
      * deletes the given entities by calling their entity.remove() methods
      * @param entities to delete
      */
