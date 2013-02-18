@@ -16,15 +16,18 @@
 
 package org.springframework.data.neo4j.annotation;
 
+import org.springframework.data.annotation.Id;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation fot the field that virtually provides the Id of the graph entity (node or relationship), type of the field should be long
+ * Annotation fot the field that virtually provides the Id of the graph entity (node or relationship), type of the field should be Long
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD,ElementType.METHOD})
+@Id
 public @interface GraphId {
 }

@@ -37,6 +37,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.*;
 
@@ -79,7 +80,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     private Result<T> geoQuery(String indexName, String geoQuery, Object params) {
         final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
-        return template.convert(new GeoNodeIndexHitsWrapper(indexHits));
+        return template.convert(new IndexHitsWrapper(indexHits));
     }
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
@@ -258,7 +259,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     interface Query<S extends PropertyContainer> {
         IndexHits<S> query(ReadableIndex<S> index);
     }
-    private ClosableIterable<T> quxery(String indexName, Query<S> query) {
+
+    private ClosableIterable<T> query(String indexName, Query<S> query) {
         try {
             final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
             if (indexHits == null) return emptyClosableIterable();
@@ -348,6 +350,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    public EndResult<T> query(String query, Map<String, Object> params) {
+        return template.query(query, params).to(clazz);
+    }
+
+    @Override
     public Page<T> findAll(final Pageable pageable) {
         int count = pageable.getPageSize();
         int offset = pageable.getOffset();
@@ -427,24 +434,23 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         }
     }
 
-    private class GeoNodeIndexHitsWrapper extends IndexHitsWrapper {
-        public GeoNodeIndexHitsWrapper(IndexHits<S> indexHits) {
-            super(indexHits);
+    @SuppressWarnings("unchecked")
+    @Override
+    public Page<T> query(Execute query, Execute countQuery, Map<String, Object> params, Pageable page) {
+        final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
+        QueryEngine<Object> engine = template.queryEngineFor(QueryType.Cypher);
+        Page result = engine.query(limitedQuery.toString(), params).to(clazz).as(Page.class);
+        if (countQuery == null) {
+            return result; 
         }
-
-        @Override
-        protected T underlyingObjectToObject(S result) {
-            final Number objectNodeId = (Number) result.getProperty("id");
-            if (objectNodeId==null) return null;
-            return super.underlyingObjectToObject(getById(objectNodeId.longValue()));
-        }
+        Long count = engine.query(countQuery.toString(), params).to(Long.class).singleOrNull();
+        if (count==null) return result;
+        return new PageImpl<T>(result.getContent(),page, count);
     }
-
     @SuppressWarnings("unchecked")
     @Override
     public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
-        final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
-        return template.queryEngineFor(QueryType.Cypher).query(limitedQuery.toString(), params).to(clazz).as(Page.class);
+        return query(query, null, params, page);
     }
 
     @SuppressWarnings("unchecked")

@@ -21,6 +21,8 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
+import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -45,6 +47,7 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntityIns
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
@@ -76,9 +79,10 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     private IndexProvider indexProvider;
     private GraphDatabaseService graphDatabaseService;
     private GraphDatabase graphDatabase;
-
+    private IsNewStrategyFactory isNewStrategyFactory;
 
     private MappingInfrastructure mappingInfrastructure;
+    private TypeRepresentationStrategyFactory.Strategy typeRepresentationStrategy;
 
     public MappingInfrastructureFactoryBean(GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         this.graphDatabase = graphDatabase;
@@ -96,6 +100,9 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     public void afterPropertiesSet() {
         try {
         if (this.mappingContext == null) this.mappingContext = new Neo4jMappingContext();
+        if (this.isNewStrategyFactory == null) {
+            this.isNewStrategyFactory = new MappingContextIsNewStrategyFactory(mappingContext); 
+        }
         if (this.graphDatabaseService == null && graphDatabase instanceof DelegatingGraphDatabase) {
             this.graphDatabaseService = ((DelegatingGraphDatabase) graphDatabase).getGraphDatabaseService();
         }
@@ -118,7 +125,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
             relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
         }
         if (this.typeRepresentationStrategyFactory == null) {
-            this.typeRepresentationStrategyFactory = new TypeRepresentationStrategyFactory(graphDatabase);
+            this.typeRepresentationStrategyFactory = typeRepresentationStrategy!=null ? new TypeRepresentationStrategyFactory(graphDatabase,typeRepresentationStrategy) : new TypeRepresentationStrategyFactory(graphDatabase);
         }
         if (this.nodeTypeRepresentationStrategy == null) {
             this.nodeTypeRepresentationStrategy = typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy();
@@ -271,9 +278,20 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     public void setTypeRepresentationStrategyFactory(TypeRepresentationStrategyFactory typeRepresentationStrategyFactory) {
         this.typeRepresentationStrategyFactory = typeRepresentationStrategyFactory;
     }
+    public void setTypeRepresentationStrategy(TypeRepresentationStrategyFactory.Strategy strategy) {
+        this.typeRepresentationStrategy = strategy;
+    }
 
     public void setIndexProvider(IndexProvider indexProvider) {
         this.indexProvider = indexProvider;
+    }
+
+    public IsNewStrategyFactory getIsNewStrategyFactory() {
+        return isNewStrategyFactory;
+    }
+
+    public void setIsNewStrategyFactory(IsNewStrategyFactory newStrategyFactory) {
+        isNewStrategyFactory = newStrategyFactory;
     }
 
     @Override
