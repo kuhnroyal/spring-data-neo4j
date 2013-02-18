@@ -73,6 +73,11 @@ public class VersionedTraversalDescriptionImpl implements VersionedTraversalDesc
     }
 
     @Override
+    public TraversalDescription evaluator(PathEvaluator pathEvaluator) {
+        return delegate.evaluator(pathEvaluator);
+    }
+
+    @Override
     public TraversalDescription order(BranchOrderingPolicy branchOrderingPolicy) {
         return delegate.order(branchOrderingPolicy);
     }
@@ -105,6 +110,11 @@ public class VersionedTraversalDescriptionImpl implements VersionedTraversalDesc
     @Override
     public <STATE> TraversalDescription expand(PathExpander<STATE> statePathExpander, InitialStateFactory<STATE> stateInitialStateFactory) {
         return delegate.expand(statePathExpander, stateInitialStateFactory);
+    }
+
+    @Override
+    public <STATE> TraversalDescription expand(PathExpander<STATE> statePathExpander, InitialBranchState<STATE> stateInitialBranchState) {
+        return delegate.expand(statePathExpander, stateInitialBranchState);
     }
 
     @Override
