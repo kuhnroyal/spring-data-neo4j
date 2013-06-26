@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.support.typerepresentation.AbstractIndexin
 public class IndexingRevisionRelationshipTypeRepresentationStrategy extends
         AbstractRevisionIndexingTypeRepresentationStrategy<Relationship> implements RelationshipTypeRepresentationStrategy {
 
-    public static final String INDEX_NAME = "__rel_types_rev__";
+    public static final String INDEX_NAME = "__rel_types__";
 
     public IndexingRevisionRelationshipTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
         super(graphDb, indexProvider, INDEX_NAME, Relationship.class);

@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.support.typerepresentation.AbstractIndexin
 public class IndexingRevisionNodeTypeRepresentationStrategy extends AbstractRevisionIndexingTypeRepresentationStrategy<Node> implements
         NodeTypeRepresentationStrategy {
 
-    public static final String INDEX_NAME = "__types_rev__";
+    public static final String INDEX_NAME = "__types__";
 
     public IndexingRevisionNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
         super(graphDb, indexProvider, INDEX_NAME, Node.class);
